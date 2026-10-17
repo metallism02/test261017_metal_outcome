@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자율성과지표 성과관리</title>
+<style>
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface2:#F7F9FC; --line:#E1E6EE; --text:#18212E; --muted:#5D6B7E;
+  --primary:#1F3A5F; --accent:#2F6FB0; --accent-soft:#E6EEF8; --track:#E4E9F0;
+  --warn:#C2410C; --warn-soft:#FDEEE6; --ok:#2E7D5B; --na:#8A94A3; --na-soft:#EEF0F3;
+  --edit:#FFF6D6; --edit-line:#E8C54A; --shadow:0 1px 2px rgba(16,30,54,.06),0 4px 16px rgba(16,30,54,.05);
+}
+:root[data-theme="dark"]{
+  --bg:#0E141C; --surface:#161F2B; --surface2:#1B2633; --line:#283445; --text:#E6EBF2; --muted:#9AA7B8;
+  --primary:#9DBBE0; --accent:#5B9BE0; --accent-soft:#1D2E44;
+  --track:#263242; --warn:#F08A4B; --warn-soft:#3A2418; --ok:#5CC08F; --na:#7D8796; --na-soft:#222C38;
+  --edit:#3A3216; --edit-line:#8A7322; --shadow:0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.topin{display:flex;align-items:center;gap:16px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--primary);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.brand .mark{width:30px;height:30px;border-radius:8px;background:var(--primary);color:var(--surface);display:grid;place-items:center;font-size:14px}
+.brand small{font-weight:500;color:var(--muted);font-size:13px}
+nav.menu{display:flex;gap:4px;margin-left:8px;overflow-x:auto}
+nav.menu a{color:var(--muted);text-decoration:none;font-size:14px;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.menu a:hover{background:var(--surface2);color:var(--text)}
+.tools{margin-left:auto;display:flex;align-items:center;gap:8px}
+.clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px;white-space:nowrap;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:7px 12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--surface)}
+.btn.primary:hover{opacity:.92}
+.btn.icon{padding:7px 10px}
+.editbar{display:none;background:var(--edit);border-bottom:1px solid var(--edit-line)}
+.editing .editbar{display:block}
+.editbar .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:10px;padding-bottom:10px;font-size:14px}
+.editbar select,.editbar input{font:inherit;padding:5px 8px;border:1px solid var(--edit-line);border-radius:6px;background:var(--surface);color:var(--text)}
+.editbar .sp{flex:1}
+.hero{padding:28px 0 8px}
+.hero h1{margin:0;font-size:26px;letter-spacing:-.02em}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{background:var(--accent-soft);color:var(--primary);font-size:13px;padding:3px 10px;border-radius:999px}
+section{padding:18px 0}
+h2{font-size:18px;margin:0 0 12px;display:flex;align-items:baseline;gap:8px}
+h2 small{font-size:13px;color:var(--muted);font-weight:400}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.overview{display:grid;grid-template-columns:300px 1fr;gap:16px}
+.ov-main{padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.ov-main .cap{color:var(--muted);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-content:start}
+.stat{padding:16px}
+.stat .k{color:var(--muted);font-size:13px}
+.stat .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .v small{font-size:14px;font-weight:500;color:var(--muted)}
+.stat .d{font-size:13px;color:var(--muted);margin-top:2px}
+.insight{grid-column:1/-1;padding:16px;font-size:14px}
+.insight ul{margin:6px 0 0;padding-left:18px}
+.insight li{margin:2px 0}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ind{padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.ind .nm{font-weight:700}
+.ind .sub{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.donut text{font-family:inherit}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;font-weight:600;white-space:nowrap}
+.tag.ok{background:var(--accent-soft);color:var(--accent)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.na{background:var(--na-soft);color:var(--na)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{color:var(--muted);font-weight:600;font-size:13px;background:var(--surface2);white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.grp{font-weight:700;color:var(--primary);white-space:nowrap}
+tr.sum td{background:var(--surface2);font-weight:600}
+.bar{display:flex;align-items:center;gap:8px;min-width:150px}
+.bar .tr{flex:1;height:8px;background:var(--track);border-radius:999px;overflow:hidden;position:relative}
+.bar .fl{height:100%;border-radius:999px;background:var(--accent)}
+.bar .fl.warn{background:var(--warn)}
+.bar b{font-variant-numeric:tabular-nums;min-width:52px;text-align:right;font-weight:600}
+.note{color:var(--muted);font-size:13px;min-width:180px}
+td input{font:inherit;width:90px;padding:4px 6px;border:1px solid var(--edit-line);background:var(--edit);color:var(--text);border-radius:6px;text-align:right}
+td input.n{width:100%;min-width:180px;text-align:left}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.list{padding:6px 16px}
+.li{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.li:last-child{border-bottom:0}
+.li .t{flex:1}
+.li .t .m{color:var(--muted);font-size:13px}
+.lv{flex:none;width:8px;height:8px;border-radius:50%;margin-top:7px}
+.lv.high{background:var(--warn)} .lv.mid{background:var(--accent)} .lv.low{background:var(--na)}
+.y1{padding:16px 20px}
+.y1row{display:grid;grid-template-columns:170px 1fr 70px;gap:12px;align-items:center;padding:8px 0}
+.y1track{position:relative;height:22px}
+.y1track .b{position:absolute;left:0;top:3px;height:16px;border-radius:4px;background:var(--accent)}
+.y1track .line{position:absolute;top:-4px;bottom:-4px;width:0;border-left:2px dashed var(--muted)}
+.y1axis{display:grid;grid-template-columns:170px 1fr 70px;gap:12px;font-size:12px;color:var(--muted)}
+.y1axis .ax{position:relative;height:16px}
+.y1axis .ax span{position:absolute;transform:translateX(-50%)}
+.sch .st{font-size:12px}
+footer{padding:28px 0 40px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:20px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:100}
+.toast.show{opacity:1}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(10,16,26,.55);display:none;z-index:50;overflow:auto;padding:24px 12px}
+.modal.open{display:block}
+.mbox{max-width:860px;margin:0 auto}
+.mbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;background:var(--surface);border-radius:10px;padding:10px 12px}
+.mbar .sp{flex:1}
+.mbar .src{font-size:13px;color:var(--muted)}
+.paper{background:#fff;color:#18212E;width:100%;max-width:794px;min-height:1000px;margin:0 auto;padding:48px 52px;border-radius:4px;box-shadow:0 10px 40px rgba(0,0,0,.25);font-size:14px}
+.paper h3{margin:0;font-size:22px;letter-spacing:-.02em;color:#1F3A5F}
+.paper .pm{color:#5D6B7E;font-size:13px;margin-top:4px;padding-bottom:12px;border-bottom:2px solid #1F3A5F}
+.paper h4{font-size:15px;margin:22px 0 8px;color:#1F3A5F}
+.paper ul{margin:0;padding-left:18px}
+.paper li{margin:3px 0}
+.paper table{font-size:13px}
+.paper th{background:#F3F5F9;color:#43516A}
+.paper th,.paper td{border-bottom:1px solid #E1E6EE;padding:7px 8px}
+.paper .tag.ok{background:#E6EEF8;color:#2F6FB0}.paper .tag.warn{background:#FDEEE6;color:#C2410C}.paper .tag.na{background:#EEF0F3;color:#8A94A3}
+.paper .pf{margin-top:28px;padding-top:10px;border-top:1px solid #E1E6EE;color:#8A94A3;font-size:12px}
+.loading{color:#5D6B7E;font-style:italic}
+.share{position:relative}
+.menu-pop{position:absolute;top:110%;left:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);display:none;min-width:200px;z-index:5}
+.menu-pop.open{display:block}
+.menu-pop button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--text);padding:9px 12px;font:inherit;font-size:14px;cursor:pointer}
+.menu-pop button:hover{background:var(--surface2)}
+.pinbox{display:flex;gap:6px;align-items:center}
+@media (max-width:960px){
+  .overview{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
+  nav.menu{display:none}
+  .y1row,.y1axis{grid-template-columns:110px 1fr 56px}
+  .paper{padding:28px 22px}
+}
+@media (max-width:520px){.grid4{grid-template-columns:1fr}.btn .lbl{display:none}.brand small,#bUnit{display:none}.wrap{padding:0 16px}.topin{gap:8px}}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff}
+  body.printing-report > *:not(#reportModal){display:none !important}
+  body.printing-report #reportModal{position:static;display:block;background:none;padding:0;overflow:visible}
+  body.printing-report .mbar{display:none}
+  body.printing-report .paper{box-shadow:none;padding:0;max-width:none;min-height:0}
+  .paper table,.paper tr{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap topin">
+    <div class="brand"><span class="mark">KPI</span><span><span id="bUniv"></span> <span id="bUnit"></span> <small>성과관리</small></span></div>
+    <nav class="menu">
+      <a href="#s-overview">종합 현황</a><a href="#s-ind">지표별 현황</a><a href="#s-table">세부지수</a><a href="#s-focus">집중 관리</a><a href="#s-y1">1차년도</a><a href="#s-sch">일정·점검</a>
+    </nav>
+    <div class="tools">
+      <button class="btn" id="btnEdit" title="실적 입력">✎ <span class="lbl">실적 입력</span></button>
+      <button class="btn primary" id="btnReport" title="AI 요약보고서">▤ <span class="lbl">AI 요약보고서</span></button>
+      <button class="btn icon" id="btnTheme" title="다크/일반 모드 전환" aria-label="다크/일반 모드 전환"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+    </div>
+  </div>
+  <div class="editbar">
+    <div class="wrap">
+      <strong>실적 입력 모드</strong>
+      <label>기준 분기 <select id="eQuarter"><option value="1">1분기</option><option value="2">2분기</option><option value="3">3분기</option><option value="4">4분기</option></select></label>
+      <label>데이터 기준일 <input type="date" id="eBase"></label>
+      <span class="pinbox" id="pinBox"><label>PIN <input type="password" id="ePin" size="6" inputmode="numeric" autocomplete="off"></label></span>
+      <span class="sp"></span>
+      <span id="localTools"><button class="btn" id="btnExport">데이터 내보내기</button> <button class="btn" id="btnImport">데이터 불러오기</button> <button class="btn" id="btnReset">초기값 복원</button></span>
+      <input type="file" id="fileImport" accept=".json,application/json" hidden>
+      <button class="btn" id="btnCancel">취소</button>
+      <button class="btn primary" id="btnSave">저장하기</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="hrow"><h1 id="hTitle"></h1><span class="clock" id="clock"></span></div>
+    <p>사업단장님들이 분기별 자율성과지표 진척을 한눈에 확인하는 페이지입니다. 진척률 = 현재값 ÷ 올해 목표값.</p>
+    <div class="chips" id="hChips"></div>
+  </div>
+
+  <section id="s-overview">
+    <h2>종합 현황 <small>올해 목표 대비 4대 지표 평균 진척률</small></h2>
+    <div class="overview">
+      <div class="card ov-main" id="ovDonut"></div>
+      <div class="stats" id="ovStats"></div>
+    </div>
+  </section>
+
+  <section id="s-ind">
+    <h2>지표별 달성 현황 <small>지수 현재값 ÷ 올해 목표값</small></h2>
+    <div class="grid4" id="indCards"></div>
+  </section>
+
+  <section id="s-table">
+    <h2>세부지수 현황표 <small id="tblCap"></small></h2>
+    <div class="card tablewrap"><table id="tbl"></table></div>
+  </section>
+
+  <section id="s-focus">
+    <div class="two">
+      <div>
+        <h2>집중 관리 항목 <small id="focusCap"></small></h2>
+        <div class="card list" id="focus"></div>
+      </div>
+      <div>
+        <h2>데이터 점검 사항 <small>원본 파일 정리 필요</small></h2>
+        <div class="card list" id="checks"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-y1">
+    <h2>1차년도(’25) 결과 <small>달성도, 점선 = 100% 기준선</small></h2>
+    <div class="card y1" id="y1"></div>
+  </section>
+
+  <section id="s-sch">
+    <h2>분기 일정 <small>오늘 날짜 기준 자동 표시 · 예시 일정이므로 사업단 일정에 맞게 수정</small></h2>
+    <div class="card tablewrap"><table id="sch"></table></div>
+  </section>
+</main>
+<footer><div class="wrap" id="foot"></div></footer>
+
+<div class="modal" id="reportModal" aria-hidden="true">
+  <div class="mbox">
+    <div class="mbar">
+      <div class="share">
+        <button class="btn" id="btnShare">공유하기 ▾</button>
+        <div class="menu-pop" id="shareMenu">
+          <button data-act="native">기기 공유 메뉴 열기</button>
+          <button data-act="copy">메신저용 텍스트 복사</button>
+          <button data-act="mail">메일 보내기</button>
+        </div>
+      </div>
+      <button class="btn" id="btnPdf">PDF 저장</button>
+      <button class="btn" id="btnPrint">인쇄</button>
+      <button class="btn" id="btnRegen">다시 작성</button>
+      <span class="sp"></span>
+      <span class="src" id="repSrc"></span>
+      <button class="btn" id="btnClose">닫기 ✕</button>
+    </div>
+    <div class="paper" id="paper"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const MODE = "netlify";               // "local" = dashboard.html, "server" = 와이파이 서버, "netlify" = 웹 배포(PIN 없음)
+const REMOTE = MODE === "server" || MODE === "netlify";
+let OFFLINE = false;
+const SEED = {"meta": {"univ": "○○대학교", "unit": "혁신지원사업단", "title": "2026학년도 자율성과지표 성과관리", "year": 2026, "yearLabel": "2차년도", "quarter": 2, "baseDate": "2026-08-31", "source": "2026학년도_자율성과지표 2분기.xlsx / 지표성과관리 정의서", "address": "○○", "phone": "○○", "email": "○○", "watchLine": 60, "updatedAt": ""}, "indicators": [{"id": "edu", "no": "①", "name": "미래교육혁신지수", "short": "미래교육", "base": 57.1, "y1": {"target": 76.5, "actual": 88.0, "rate": 115.0}, "target27": 100.0, "items": [{"name": "융합교육 운영", "unit": "건", "weight": 0.2, "target": 6, "current": 3, "target27": 8, "dept": "학사운영팀", "note": "마이크로디그리 3건 · 나노디그리·융합전공 빈칸(기획팀 협의 필요)"}, {"name": "AI기반 학습자 맞춤형 학습지원", "unit": "명", "weight": 0.3, "target": 61, "current": 7, "target27": 78, "dept": "교수학습지원센터", "note": "AI셀터디 7명 · AI적응형 교과 0명(운영 예정)"}, {"name": "재학생 교육만족도", "unit": "점", "weight": 0.5, "target": 81.2, "current": 73, "target27": 81.5, "dept": "IR센터", "note": "세부현황 근거 미기재 · 확인 필요"}]}, {"id": "stu", "no": "②", "name": "학생지원혁신지수", "short": "학생지원", "base": 88.4, "y1": {"target": 91.8, "actual": 100.3, "rate": 109.3}, "target27": 100.0, "items": [{"name": "AI기반 진로·취업 설계 지원", "unit": "명", "weight": 0.5, "target": 535, "current": 434, "target27": 580, "dept": "취업지원센터", "note": "2026.07.10 공문(8.31 기준)"}, {"name": "재학생 수 유지율", "unit": "%", "weight": 0.5, "target": 92.6, "current": null, "target27": 92.6, "dept": "학사운영팀", "note": "10.1 재학인원 확정 후 산출(정보공시)"}]}, {"id": "glo", "no": "③", "name": "지·산·학글로컬혁신지수", "short": "지산학글로컬", "base": 97.7, "y1": {"target": 98.4, "actual": 106.0, "rate": 107.7}, "target27": 100.0, "items": [{"name": "지·산·학 협력교육", "unit": "건", "weight": 0.4, "target": 1197, "current": 1124, "target27": 1209, "dept": "학사운영팀 · 현장실습지원센터", "note": "정규 캡스톤 2 · 비정규 2 · 현장실습 1,120(계획 기준)"}, {"name": "열린평생직업교육", "unit": "명", "weight": 0.4, "target": 1050, "current": 434, "target27": 1060, "dept": "학사운영팀", "note": "교양 320 · 전공 47 · 유아교육 40 · 유학생 27"}, {"name": "재학생 글로벌 핵심역량 향상", "unit": "점", "weight": 0.2, "target": 0.2, "current": 0.18, "target27": 0.2, "dept": "IR센터", "note": "세부현황 근거 미기재 · 확인 필요"}]}, {"id": "soc", "no": "④", "name": "사회적책무혁신지수", "short": "사회적책무", "base": 81.3, "y1": {"target": 85.1, "actual": 102.2, "rate": 120.2}, "target27": 100.0, "items": [{"name": "재학생 도덕성(Altruism) 역량 향상", "unit": "점", "weight": 0.3, "target": 0.2, "current": 0.18, "target27": 0.2, "dept": "IR센터", "note": "세부현황 근거 미기재 · 확인 필요"}, {"name": "인적·물적 자원 공유·협력", "unit": "건", "weight": 0.3, "target": 118, "current": 71, "target27": 123, "dept": "기획팀 · 학사운영팀 · 교육환경지원팀", "note": "공동교과목 1 · 학점교류 2 · 교육공간 공유 68"}, {"name": "성과 공유·확산", "unit": "건", "weight": 0.4, "target": 27, "current": 18, "target27": 32, "dept": "기획팀", "note": ""}]}], "checks": [{"level": "high", "text": "엑셀에 외부 파일 연결 8개가 있음. 재학생 수 유지율(F10)·열린평생직업교육(F13) 값은 다른 파일에서 가져오므로, 값으로 붙여넣기 후 사용 권장"}, {"level": "high", "text": "재학생 수 유지율은 0으로 입력되어 있으나 실제로는 미산출(10.1 재학인원 기준) — 지수 계산 시 0으로 반영되어 학생지원혁신지수가 낮게 보임"}, {"level": "mid", "text": "정의서 내부 불일치: 미래교육혁신지수 1차년도 목표 76.5(총괄표) vs 71.6(산출식 표), 2차년도 88.3 vs 85.9"}, {"level": "mid", "text": "재학생 교육만족도(73점)·글로벌 핵심역량(0.18)·도덕성 역량(0.18)은 세부현황 시트에 근거가 없음 — IR센터 확인 필요"}, {"level": "mid", "text": "AI기반 진로·취업 설계 지원(434명)과 열린평생직업교육 계(434명)가 같은 값 — 우연 일치인지 확인"}, {"level": "low", "text": "달성현황 시트의 '2023학년도 달성값 계산' 열 제목과 열린평생직업교육 분자·분모(60억/250억)가 비정상 — 정리 필요"}, {"level": "low", "text": "현장실습 1,120명은 계획 기준 값으로 결과 확정 시 변경될 수 있음"}], "schedule": [{"name": "2분기 실적 취합·점검", "start": "2026-07-01", "end": "2026-08-31"}, {"name": "3분기 실적 취합", "start": "2026-10-01", "end": "2026-10-31"}, {"name": "재학생 수 유지율 산출(10.1 재학인원)", "start": "2026-10-01", "end": "2026-10-31"}, {"name": "수요자 만족도 조사(IR센터)", "start": "2026-11-01", "end": "2026-12-31"}, {"name": "4분기·연차 실적 최종 집계(측정기간 ~2.28)", "start": "2027-01-01", "end": "2027-03-15"}]};
+const LS_KEY = "kpi-dashboard-2026";
+let DATA = JSON.parse(JSON.stringify(SEED));
+let editing = false, draft = null, lastReport = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v, d) => v == null || v === "" ? "–" : Number(v).toLocaleString("ko-KR", {maximumFractionDigits: d ?? 2});
+const pct = v => v == null ? "–" : v.toFixed(1) + "%";
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200); }
+
+/* ---------- 계산 ---------- */
+function calc(d){
+  const watch = d.meta.watchLine ?? 60;
+  const inds = d.indicators.map(ind => {
+    let tIdx = 0, cIdx = 0;
+    const items = ind.items.map(it => {
+      const cur = it.current == null || it.current === "" ? null : Number(it.current);
+      tIdx += (it.target / it.target27) * it.weight * 100;
+      cIdx += ((cur ?? 0) / it.target27) * it.weight * 100;     // 미산출은 0으로 반영(엑셀과 동일)
+      const rate = cur == null ? null : cur / it.target * 100;
+      const status = rate == null ? "na" : rate < watch ? "warn" : "ok";
+      return {...it, current: cur, rate, status};
+    });
+    const rate = cIdx / tIdx * 100;
+    return {...ind, items, tIdx, cIdx, rate, status: rate < watch ? "warn" : "ok"};
+  });
+  const overall = inds.reduce((s, i) => s + i.rate, 0) / inds.length;
+  const all = inds.flatMap(i => i.items.map(it => ({...it, ind: i.name})));
+  return {inds, overall, all, watch,
+    warn: all.filter(x => x.status === "warn").sort((a,b)=>a.rate-b.rate),
+    na: all.filter(x => x.status === "na"),
+    pace: (d.meta.quarter / 4) * 100};
+}
+const statusTag = s => s === "na" ? '<span class="tag na">미산출</span>' : s === "warn" ? '<span class="tag warn">관리 필요</span>' : '<span class="tag ok">정상</span>';
+
+/* ---------- 도넛 ---------- */
+function donut(rate, size, stroke, label, status){
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, rate || 0));
+  const col = status === "warn" ? "var(--warn)" : "var(--accent)";
+  return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${esc(label)} ${pct(rate)}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--track)" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linecap="round"
+      stroke-dasharray="${c*v/100} ${c}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <text x="50%" y="${size>150?47:46}%" text-anchor="middle" dominant-baseline="middle" fill="var(--text)" font-size="${size>150?40:24}" font-weight="700">${rate==null?"–":rate.toFixed(1)}<tspan font-size="${size>150?20:13}" font-weight="500">%</tspan></text>
+    <text x="50%" y="${size>150?64:66}%" text-anchor="middle" fill="var(--muted)" font-size="${size>150?14:11}">${esc(label)}</text>
+  </svg>`;
+}
+
+/* ---------- 렌더 ---------- */
+function render(){
+  const d = editing ? draft : DATA, R = calc(d), m = d.meta;
+  $("#bUniv").textContent = m.univ; $("#bUnit").textContent = m.unit;
+  $("#hTitle").textContent = m.title;
+  $("#hChips").innerHTML = [`${m.year}학년도 · ${m.yearLabel}`, `기준: ${m.quarter}분기`, `데이터 기준일 ${m.baseDate}`, m.updatedAt ? `최종 저장 ${m.updatedAt}` : `원본: ${m.source}`]
+    .map(t => `<span class="chip">${esc(t)}</span>`).join("");
+
+  $("#ovDonut").innerHTML = donut(R.overall, 210, 22, "종합 진척률", R.overall < R.watch ? "warn" : "ok") +
+    `<div class="cap">분기 경과율 ${R.pace.toFixed(0)}% 대비 <b>${(R.overall - R.pace >= 0 ? "+" : "") + (R.overall - R.pace).toFixed(1)}%p</b></div>`;
+  const best = [...R.inds].sort((a,b)=>b.rate-a.rate)[0], worst = [...R.inds].sort((a,b)=>a.rate-b.rate)[0];
+  $("#ovStats").innerHTML = `
+    <div class="card stat"><div class="k">자율성과지표</div><div class="v">${R.inds.length}<small>개</small></div><div class="d">세부지수 ${R.all.length}개</div></div>
+    <div class="card stat"><div class="k">최고 진척</div><div class="v">${best.rate.toFixed(1)}<small>%</small></div><div class="d">${esc(best.name)}</div></div>
+    <div class="card stat"><div class="k">관리 필요</div><div class="v" style="color:var(--warn)">${R.warn.length}<small>개</small></div><div class="d">진척률 ${R.watch}% 미만</div></div>
+    <div class="card stat"><div class="k">미산출</div><div class="v" style="color:var(--na)">${R.na.length}<small>개</small></div><div class="d">${R.na.map(x=>esc(x.name)).join(", ") || "없음"}</div></div>
+    <div class="card insight"><b>한눈에 보기</b><ul>
+      <li>종합 진척률 <b>${pct(R.overall)}</b> — ${R.overall >= R.pace ? "분기 경과 속도보다 앞서 있습니다." : "분기 경과 속도보다 뒤처져 있습니다."}</li>
+      <li>가장 낮은 지표는 <b>${esc(worst.name)}(${pct(worst.rate)})</b>${R.na.some(x=>worst.items.some(i=>i.name===x.name)) ? " — 미산출 항목이 0으로 반영된 영향이 큽니다." : "."}</li>
+      ${R.warn.length ? `<li>집중 관리: ${R.warn.slice(0,3).map(x=>`${esc(x.name)} ${pct(x.rate)}`).join(" · ")}</li>` : ""}
+    </ul></div>`;
+
+  $("#indCards").innerHTML = R.inds.map(i => `<div class="card ind">
+      <div class="nm">${i.no} ${esc(i.name)}</div>
+      ${donut(i.rate, 132, 14, "진척률", i.status)}
+      <div class="sub">지수 ${i.cIdx.toFixed(1)} / 목표 ${i.tIdx.toFixed(1)}</div>
+      ${statusTag(i.status)}</div>`).join("");
+
+  $("#tblCap").textContent = `관리 필요 기준: 진척률 ${R.watch}% 미만 · 지수 계산식: Σ(현재값 ÷ 3차년도 목표 × 비중)`;
+  let h = `<thead><tr><th>지표</th><th>세부지수</th><th class="num">비중</th><th class="num">목표(’26)</th><th class="num">현재값</th><th>달성률</th><th>관리부서</th><th>상태</th><th>비고</th></tr></thead><tbody>`;
+  R.inds.forEach((ind, gi) => {
+    ind.items.forEach((it, ii) => {
+      const bar = it.rate == null ? `<span class="note">미산출</span>` :
+        `<div class="bar"><div class="tr"><div class="fl ${it.status==="warn"?"warn":""}" style="width:${Math.min(100,it.rate)}%"></div></div><b>${pct(it.rate)}</b></div>`;
+      const cur = editing ? `<input type="number" step="any" data-g="${gi}" data-i="${ii}" data-f="current" value="${it.current ?? ""}" placeholder="미산출">` : `${fmt(it.current)}<small style="color:var(--muted)"> ${esc(it.unit)}</small>`;
+      const note = editing ? `<input class="n" data-g="${gi}" data-i="${ii}" data-f="note" value="${esc(it.note)}">` : esc(it.note);
+      h += `<tr>${ii===0?`<td class="grp" rowspan="${ind.items.length+1}">${ind.no} ${esc(ind.short)}</td>`:""}
+        <td>${esc(it.name)}</td><td class="num">${Math.round(it.weight*100)}%</td><td class="num">${fmt(it.target)}</td><td class="num">${cur}</td>
+        <td>${bar}</td><td class="note">${esc(it.dept)}</td><td>${statusTag(it.status)}</td><td class="note">${note}</td></tr>`;
+    });
+    h += `<tr class="sum"><td>지수 합계</td><td class="num">100%</td><td class="num">${ind.tIdx.toFixed(1)}</td><td class="num">${ind.cIdx.toFixed(1)}</td>
+      <td><div class="bar"><div class="tr"><div class="fl ${ind.status==="warn"?"warn":""}" style="width:${Math.min(100,ind.rate)}%"></div></div><b>${pct(ind.rate)}</b></div></td><td></td><td>${statusTag(ind.status)}</td><td></td></tr>`;
+  });
+  $("#tbl").innerHTML = h + "</tbody>";
+  $("#tbl").querySelectorAll("input").forEach(inp => inp.addEventListener("change", e => {
+    const t = e.target, it = draft.indicators[t.dataset.g].items[t.dataset.i];
+    it[t.dataset.f] = t.dataset.f === "current" ? (t.value === "" ? null : Number(t.value)) : t.value;
+    render();
+  }));
+
+  const focus = [...R.warn, ...R.na];
+  $("#focusCap").textContent = `진척률 ${R.watch}% 미만 ${R.warn.length}건 · 미산출 ${R.na.length}건`;
+  $("#focus").innerHTML = focus.length ? focus.map(x => `<div class="li">${statusTag(x.status)}<div class="t"><b>${esc(x.name)}</b> <span class="m">· ${esc(x.ind)}</span>
+      <div class="m">${x.rate==null ? "현재값 미산출" : `현재 ${fmt(x.current)}${esc(x.unit)} / 목표 ${fmt(x.target)}${esc(x.unit)} (${pct(x.rate)})`} · ${esc(x.dept)}${x.note ? " · " + esc(x.note) : ""}</div></div></div>`).join("")
+    : `<div class="li"><div class="t">집중 관리 항목이 없습니다.</div></div>`;
+  $("#checks").innerHTML = d.checks.map(c => `<div class="li"><span class="lv ${c.level}"></span><div class="t">${esc(c.text)}</div></div>`).join("");
+
+  const max = 130, pos = v => Math.min(v, max) / max * 100;
+  $("#y1").innerHTML = R.inds.map(i => `<div class="y1row"><div>${i.no} ${esc(i.short)}</div>
+      <div class="y1track"><div class="b" style="width:${pos(i.y1.rate)}%" title="목표 ${i.y1.target} / 실적 ${i.y1.actual}"></div><div class="line" style="left:${pos(100)}%"></div></div>
+      <div class="num" style="text-align:right;font-weight:700">${i.y1.rate.toFixed(1)}%</div></div>`).join("") +
+    `<div class="y1axis"><div></div><div class="ax">${[0,50,100,130].map(v=>`<span style="left:${pos(v)}%">${v}%</span>`).join("")}</div><div></div></div>
+     <div style="margin-top:10px;font-size:13px;color:var(--muted)">평균 달성도 ${(R.inds.reduce((s,i)=>s+i.y1.rate,0)/R.inds.length).toFixed(1)}% · 4개 지표 모두 목표 초과 달성</div>`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  $("#sch").innerHTML = `<thead><tr><th>일정</th><th>기간</th><th>상태</th></tr></thead><tbody>` + d.schedule.map(s => {
+    const a = new Date(s.start + "T00:00:00"), b = new Date(s.end + "T00:00:00");
+    const st = today > b ? '<span class="tag na">완료</span>' : today >= a ? '<span class="tag warn">진행 중</span>' : `<span class="tag ok">D-${Math.ceil((a - today)/864e5)}</span>`;
+    return `<tr class="sch"><td>${esc(s.name)}</td><td class="num" style="text-align:left">${s.start} ~ ${s.end}</td><td>${st}</td></tr>`;
+  }).join("") + "</tbody>";
+
+  $("#foot").innerHTML = `${esc(m.univ)} ${esc(m.unit)} · 주소 ${esc(m.address)} · 문의 ${esc(m.phone)} · ${esc(m.email)}<br>
+    수치는 입력 데이터로 자동 계산됩니다. 미산출 항목은 엑셀과 같이 0으로 지수에 반영됩니다. · 실행 방식: ${MODE === "netlify" ? (OFFLINE ? "웹 배포 · 서버 연결 안 됨(이 브라우저에 임시 저장)" : "웹 배포 · 공유 저장소(모든 접속자 동일)") : MODE === "server" ? "와이파이 서버(data/kpi.json)" : "이 PC 브라우저 저장"}`;
+}
+
+/* ---------- 데이터 저장/불러오기 ---------- */
+async function load(){
+  if (REMOTE) {
+    try { const r = await fetch("api/data", {cache: "no-store"}); if (!r.ok) throw 0; DATA = await r.json(); }
+    catch(e){
+      OFFLINE = true;
+      if (MODE === "netlify") { try { const s = localStorage.getItem(LS_KEY); if (s) DATA = JSON.parse(s); } catch(_){} toast("공유 저장소에 연결하지 못해 기본 데이터를 표시합니다."); }
+      else toast("데이터를 불러오지 못했습니다. 서버 주소(http://localhost:8000)로 여세요.");
+    }
+  } else {
+    try { const s = localStorage.getItem(LS_KEY); if (s) DATA = JSON.parse(s); } catch(e){}
+  }
+  render();
+}
+async function save(){
+  draft.meta.updatedAt = new Date().toLocaleString("ko-KR", {hour12:false});
+  if (REMOTE && !OFFLINE) {
+    const pin = MODE === "server" ? $("#ePin").value : "";
+    try {
+      const r = await fetch("api/data", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({pin, data: draft})});
+      const j = await r.json(); if (!r.ok) { toast(j.error || "저장 실패"); return; }
+      toast(MODE === "netlify" ? "저장했습니다. 모든 접속자에게 같은 값이 보입니다." : "저장했습니다. 백업: " + j.backup);
+    } catch(e){ toast("서버에 저장하지 못했습니다."); return; }
+  } else {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(draft)); toast("이 브라우저에 저장했습니다. 데이터 내보내기로 백업해 두세요."); }
+    catch(e){ toast("브라우저 저장소를 쓸 수 없습니다. 데이터 내보내기를 이용하세요."); }
+  }
+  DATA = draft; setEdit(false);
+}
+function setEdit(on){
+  editing = on; draft = on ? JSON.parse(JSON.stringify(DATA)) : null;
+  document.body.classList.toggle("editing", on);
+  if (on){ $("#eQuarter").value = draft.meta.quarter; $("#eBase").value = draft.meta.baseDate; }
+  render();
+}
+$("#pinBox").style.display = MODE === "server" ? "" : "none";
+$("#localTools").style.display = MODE === "server" ? "none" : "";
+if (MODE === "netlify") $("#btnEdit").title = "실적 입력 (로그인·PIN 없이 누구나 수정 가능)";
+$("#btnEdit").onclick = () => setEdit(!editing);
+$("#btnCancel").onclick = () => setEdit(false);
+$("#btnSave").onclick = save;
+$("#eQuarter").onchange = e => { draft.meta.quarter = Number(e.target.value); render(); };
+$("#eBase").onchange = e => { draft.meta.baseDate = e.target.value; render(); };
+$("#btnExport").onclick = () => {
+  const blob = new Blob([JSON.stringify(draft || DATA, null, 2)], {type:"application/json"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `kpi_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href);
+};
+$("#btnImport").onclick = () => $("#fileImport").click();
+$("#fileImport").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const j = JSON.parse(await f.text()); if (!j.indicators) throw 0; draft = j; render(); toast("불러왔습니다. 저장하기를 눌러 반영하세요."); }
+  catch(err){ toast("올바른 데이터 파일이 아닙니다."); }
+  e.target.value = "";
+};
+$("#btnReset").onclick = () => { draft = JSON.parse(JSON.stringify(SEED)); render(); toast("초기값을 불러왔습니다. 저장하기를 눌러 반영하세요."); };
+
+/* ---------- 다크모드 / 시계 ---------- */
+function applyTheme(t){ document.documentElement.dataset.theme = t; try{ localStorage.setItem("kpi-theme", t); }catch(e){} }
+let theme; try { theme = localStorage.getItem("kpi-theme"); } catch(e){}
+applyTheme(theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+$("#btnTheme").onclick = () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+function tick(){ const n = new Date(); const w = "일월화수목금토"[n.getDay()];
+  $("#clock").textContent = `${n.getFullYear()}.${String(n.getMonth()+1).padStart(2,"0")}.${String(n.getDate()).padStart(2,"0")}(${w}) ${n.toLocaleTimeString("ko-KR",{hour12:false})}`; }
+tick(); setInterval(tick, 1000);
+
+/* ---------- AI 요약보고서 ---------- */
+function ruleSummary(d, R){
+  const m = d.meta, sorted = [...R.inds].sort((a,b)=>b.rate-a.rate);
+  const s = [
+    `${m.year}학년도 ${m.quarter}분기 기준 자율성과지표 종합 진척률은 ${pct(R.overall)}로, 단순 분기 경과율(${R.pace.toFixed(0)}%) 대비 ${(R.overall-R.pace>=0?"+":"")+(R.overall-R.pace).toFixed(1)}%p 수준임.`,
+    `지표별로는 ${sorted.map(i=>`${i.name} ${pct(i.rate)}`).join(", ")} 순임.`,
+    R.warn.length ? `진척률 ${R.watch}% 미만 세부지수는 ${R.warn.length}건(${R.warn.map(x=>`${x.name} ${pct(x.rate)}`).join(", ")})으로 집중 관리가 필요함.` : `진척률 ${R.watch}% 미만 세부지수는 없음.`,
+    R.na.length ? `${R.na.map(x=>x.name).join(", ")}은(는) 아직 산출되지 않아 지수에 0으로 반영되었으며, 산출 후 지수가 상승할 예정임.` : ""
+  ].filter(Boolean);
+  const a = [
+    ...R.warn.slice(0,3).map(x => `${x.name}: ${x.dept}와 하반기 실적 확보 계획 점검 (현재 ${fmt(x.current)}${x.unit} / 목표 ${fmt(x.target)}${x.unit})`),
+    ...R.na.map(x => `${x.name}: ${x.note || "산출 일정 확인"}`),
+    `근거 미기재 값(교육만족도·핵심역량 등)은 IR센터 확인 후 확정`,
+  ];
+  return {summary: s, actions: a, source: "규칙 기반 자동 요약"};
+}
+function packForAI(d, R){
+  return {기준: `${d.meta.year}학년도 ${d.meta.quarter}분기`, 종합진척률: +R.overall.toFixed(1), 분기경과율: R.pace, 관리기준: R.watch,
+    지표: R.inds.map(i => ({지표: i.name, 진척률: +i.rate.toFixed(1), 세부: i.items.map(x => ({세부지수: x.name, 목표: x.target, 현재: x.current, 단위: x.unit, 진척률: x.rate==null?null:+x.rate.toFixed(1), 부서: x.dept, 비고: x.note}))})),
+    점검사항: d.checks.map(c => c.text)};
+}
+async function getSummary(d, R){
+  if (REMOTE && !OFFLINE) {
+    try {
+      const r = await fetch("api/report", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({data: packForAI(d, R)})});
+      if (r.ok) { const j = await r.json(); if (j.summary && j.summary.length) return {...j, source: "AI 작성 (" + (j.model || "Claude") + ")"}; }
+    } catch(e){}
+  }
+  return ruleSummary(d, R);
+}
+function paperHTML(d, R, S){
+  const m = d.meta, now = new Date();
+  return `<h3>${m.year}학년도 자율성과지표 ${m.quarter}분기 성과 요약보고서</h3>
+  <div class="pm">${esc(m.univ)} ${esc(m.unit)} · 작성일 ${now.toLocaleDateString("ko-KR")} · 데이터 기준일 ${m.baseDate}</div>
+  <h4>1. 종합 요약</h4><ul>${S.summary.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+  <h4>2. 지표별 달성 현황</h4>
+  <table><thead><tr><th>지표</th><th class="num">목표 지수</th><th class="num">현재 지수</th><th class="num">진척률</th><th class="num">1차년도 달성도</th><th>상태</th></tr></thead><tbody>
+  ${R.inds.map(i=>`<tr><td>${i.no} ${esc(i.name)}</td><td class="num">${i.tIdx.toFixed(1)}</td><td class="num">${i.cIdx.toFixed(1)}</td><td class="num"><b>${pct(i.rate)}</b></td><td class="num">${i.y1.rate.toFixed(1)}%</td><td>${statusTag(i.status)}</td></tr>`).join("")}
+  <tr><td><b>종합</b></td><td></td><td></td><td class="num"><b>${pct(R.overall)}</b></td><td class="num">${(R.inds.reduce((s,i)=>s+i.y1.rate,0)/4).toFixed(1)}%</td><td></td></tr></tbody></table>
+  <h4>3. 집중 관리 항목</h4>
+  <table><thead><tr><th>세부지수</th><th class="num">목표</th><th class="num">현재</th><th class="num">진척률</th><th>관리부서</th><th>상태</th></tr></thead><tbody>
+  ${[...R.warn, ...R.na].map(x=>`<tr><td>${esc(x.name)}</td><td class="num">${fmt(x.target)}${esc(x.unit)}</td><td class="num">${x.current==null?"–":fmt(x.current)+esc(x.unit)}</td><td class="num">${pct(x.rate)}</td><td>${esc(x.dept)}</td><td>${statusTag(x.status)}</td></tr>`).join("")}</tbody></table>
+  <h4>4. 향후 조치</h4><ul>${S.actions.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+  <h4>5. 데이터 점검 사항</h4><ul>${d.checks.filter(c=>c.level!=="low").map(c=>`<li>${esc(c.text)}</li>`).join("")}</ul>
+  <div class="pf">표와 수치는 입력 데이터로 자동 계산되었으며, 문장은 ${esc(S.source)}입니다. 진척률 = 현재값 ÷ ${m.year}년 목표값. 관리 필요 기준 ${R.watch}% 미만.</div>`;
+}
+function shareText(){
+  const d = DATA, R = calc(d), S = lastReport || ruleSummary(d, R);
+  return `[${d.meta.univ} ${d.meta.unit}] ${d.meta.year}학년도 자율성과지표 ${d.meta.quarter}분기 요약\n\n` +
+    `■ 종합 진척률 ${pct(R.overall)}\n` + R.inds.map(i=>`- ${i.name}: ${pct(i.rate)}`).join("\n") +
+    `\n\n■ 요약\n` + S.summary.map(x=>`- ${x}`).join("\n") +
+    `\n\n■ 집중 관리\n` + [...R.warn, ...R.na].map(x=>`- ${x.name}: ${x.rate==null?"미산출":pct(x.rate)}`).join("\n") +
+    `\n\n(데이터 기준일 ${d.meta.baseDate})`;
+}
+async function openReport(regen){
+  const d = DATA, R = calc(d);
+  $("#reportModal").classList.add("open"); $("#reportModal").setAttribute("aria-hidden","false");
+  if (!lastReport || regen) {
+    $("#paper").innerHTML = `<p class="loading">보고서를 작성하고 있습니다…</p>`;
+    lastReport = await getSummary(d, R);
+  }
+  $("#paper").innerHTML = paperHTML(d, R, lastReport);
+  $("#repSrc").textContent = lastReport.source;
+}
+function closeReport(){ $("#reportModal").classList.remove("open"); $("#reportModal").setAttribute("aria-hidden","true"); $("#shareMenu").classList.remove("open"); }
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); return true; }
+  catch(e){ const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch(_){} ta.remove(); return ok; }
+}
+function printReport(isPdf){
+  if (isPdf) toast("인쇄 창의 프린터(대상) 항목에서 'PDF로 저장'을 고르세요.");
+  document.body.classList.add("printing-report");
+  setTimeout(() => { window.print(); }, isPdf ? 600 : 50);
+}
+window.addEventListener("afterprint", () => document.body.classList.remove("printing-report"));
+$("#btnReport").onclick = () => openReport(false);
+$("#btnRegen").onclick = () => openReport(true);
+$("#btnClose").onclick = closeReport;
+$("#reportModal").onclick = e => { if (e.target.id === "reportModal") closeReport(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeReport(); });
+$("#btnPdf").onclick = () => printReport(true);
+$("#btnPrint").onclick = () => printReport(false);
+$("#btnShare").onclick = e => { e.stopPropagation(); $("#shareMenu").classList.toggle("open"); };
+document.addEventListener("click", () => $("#shareMenu").classList.remove("open"));
+$("#shareMenu").onclick = async e => {
+  const act = e.target.dataset.act; if (!act) return;
+  const t = shareText(), title = `${DATA.meta.year}학년도 자율성과지표 ${DATA.meta.quarter}분기 요약`;
+  if (act === "native") {
+    if (navigator.share) { try { await navigator.share({title, text: t}); } catch(_){} }
+    else { toast("이 브라우저는 기기 공유를 지원하지 않습니다. 텍스트 복사를 이용하세요."); }
+  } else if (act === "copy") {
+    toast(await copyText(t) ? "복사했습니다. 카카오톡·메신저 대화창에 붙여넣으세요." : "복사하지 못했습니다.");
+  } else if (act === "mail") {
+    location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(t)}`;
+  }
+};
+
+load();
+</script>
+</body>
+</html>
